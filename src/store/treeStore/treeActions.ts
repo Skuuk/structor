@@ -51,6 +51,9 @@ export const UPDATE_MARKED_LINK_ID = 'updateMarkedLinkId';
 export const UPDATE_VALUESET_ACTION = 'UPDATE_VALUESET';
 export const IMPORT_VALUESET_ACTION = 'IMPORT_VALUESET';
 export const SAVE_ACTION = 'save';
+export const ADD_QUESTIONNAIRE_CODE_ACTION = 'addQuestionnaireCode';
+export const DELETE_QUESTIONNAIRE_CODE_ACTION = 'deleteQuestionnaireCode';
+export const UPDATE_QUESTIONNAIRE_CODE_PROPERTY_ACTION = 'updateQuestionnaireCodeProperty';
 
 type ItemValueType =
     | string
@@ -79,6 +82,24 @@ export interface DeleteItemCodeAction {
 export interface UpdateItemCodePropertyAction {
     type: typeof UPDATE_ITEM_CODE_PROPERTY_ACTION;
     linkId: string;
+    index: number;
+    property: ICodingProperty;
+    value: string;
+}
+
+export interface AddQuestionnaireCodeAction {
+    type: typeof ADD_QUESTIONNAIRE_CODE_ACTION;
+    index: number;
+    code: Coding;
+}
+
+export interface DeleteQuestionnaireCodeAction {
+    type: typeof DELETE_QUESTIONNAIRE_CODE_ACTION;
+    index: number;
+}
+
+export interface UpdateQuestionnaireCodePropertyAction {
+    type: typeof UPDATE_QUESTIONNAIRE_CODE_PROPERTY_ACTION;
     index: number;
     property: ICodingProperty;
     value: string;
@@ -263,6 +284,34 @@ export const updateItemCodePropertyAction = (
     return {
         type: UPDATE_ITEM_CODE_PROPERTY_ACTION,
         linkId,
+        index,
+        property,
+        value,
+    };
+};
+
+export const addQuestionnaireCodeAction = (index: number, code: Coding): AddQuestionnaireCodeAction => {
+    return {
+        type: ADD_QUESTIONNAIRE_CODE_ACTION,
+        index,
+        code,
+    };
+};
+
+export const deleteQuestionnaireCodeAction = (index: number): DeleteQuestionnaireCodeAction => {
+    return {
+        type: DELETE_QUESTIONNAIRE_CODE_ACTION,
+        index,
+    };
+};
+
+export const updateQuestionnaireCodePropertyAction = (
+    index: number,
+    property: ICodingProperty,
+    value: string,
+): UpdateQuestionnaireCodePropertyAction => {
+    return {
+        type: UPDATE_QUESTIONNAIRE_CODE_PROPERTY_ACTION,
         index,
         property,
         value,

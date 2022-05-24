@@ -1,7 +1,7 @@
 import React, { createContext, Dispatch, useEffect, useReducer } from 'react';
 import produce from 'immer';
 
-import { Extension, QuestionnaireItem, ValueSet } from '../../types/fhir';
+import { Extension, QuestionnaireItem, ValueSet, Coding } from '../../types/fhir';
 import {
     ADD_ITEM_CODE_ACTION,
     ADD_QUESTIONNAIRE_LANGUAGE_ACTION,
@@ -55,6 +55,12 @@ import {
     UpdateValueSetAction,
     UPDATE_SETTING_TRANSLATION_ACTION,
     UpdateSettingTranslationAction,
+    ADD_QUESTIONNAIRE_CODE_ACTION,
+    DELETE_QUESTIONNAIRE_CODE_ACTION,
+    UPDATE_QUESTIONNAIRE_CODE_PROPERTY_ACTION,
+    AddQuestionnaireCodeAction,
+    DeleteQuestionnaireCodeAction,
+    UpdateQuestionnaireCodePropertyAction,
 } from './treeActions';
 import { IQuestionnaireMetadata, IQuestionnaireMetadataType } from '../../types/IQuestionnaireMetadataType';
 import createUUID from '../../helpers/CreateUUID';
@@ -92,10 +98,17 @@ export type ActionType =
     | UpdateValueSetAction
     | RemoveItemAttributeAction
     | SaveAction
-    | UpdateMarkedLinkId;
+    | UpdateMarkedLinkId
+    | AddQuestionnaireCodeAction
+    | DeleteQuestionnaireCodeAction
+    | UpdateQuestionnaireCodePropertyAction;
 
 export interface Items {
     [linkId: string]: QuestionnaireItem;
+}
+
+export interface QuestionnaireCodes {
+    codes: Coding[] | undefined;
 }
 
 export interface CodeStringValue {
@@ -166,6 +179,7 @@ export interface MarkedItem {
 export interface TreeState {
     isDirty: boolean;
     qItems: Items;
+    qCodes: QuestionnaireCodes;
     qOrder: OrderItem[];
     qMetadata: IQuestionnaireMetadata;
     qContained?: ValueSet[];
@@ -231,6 +245,7 @@ export const initialState: TreeState = {
     qContained: initPredefinedValueSet,
     qCurrentItem: undefined,
     qAdditionalLanguages: {},
+    qCodes: {},
 };
 
 function addLanguage(draft: TreeState, action: AddQuestionnaireLanguageAction) {
@@ -428,6 +443,42 @@ function deleteItemCode(draft: TreeState, action: DeleteItemCodeAction): void {
 }
 
 function updateItemCodeProperty(draft: TreeState, action: UpdateItemCodePropertyAction): void {
+    const code = draft.qItems[action.linkId].code;
+    if (!code) {
+        console.error('Trying to update "code" from non-extistent item or code');
+        return;
+    }
+
+    if (code && code[action.index]) {
+        code[action.index][action.property] = action.value;
+    }
+}
+
+function addQuestionnaireCode(draft: TreeState, action: AddQuestionnaireCodeAction): void {
+    if (!draft.qCodes[action.index]) {
+        console.error('Trying to add "code" to non-extistent item');
+        return;
+    }
+    if (!draft.qItems[action.linkId].code) {
+        draft.qItems[action.linkId].code = [];
+    }
+    draft.qItems[action.linkId].code?.push(action.code);
+}
+
+function deleteQuestionnaireCode(draft: TreeState, action: DeleteQuestionnaireCodeAction): void {
+    if (!draft.qItems[action.linkId]) {
+        console.error('Trying to delete "code" from non-extistent item');
+        return;
+    }
+    const { code } = draft.qItems[action.linkId];
+    if (code && code.length > 1) {
+        draft.qItems[action.linkId].code?.splice(action.index, 1);
+    } else {
+        delete draft.qItems[action.linkId].code;
+    }
+}
+
+function updateQuestionnaireCodeProperty(draft: TreeState, action: UpdateQuestionnaireCodePropertyAction): void {
     const code = draft.qItems[action.linkId].code;
     if (!code) {
         console.error('Trying to update "code" from non-extistent item or code');
@@ -670,6 +721,15 @@ const reducer = produce((draft: TreeState, action: ActionType) => {
             break;
         case UPDATE_ITEM_CODE_PROPERTY_ACTION:
             updateItemCodeProperty(draft, action);
+            break;
+        case ADD_QUESTIONNAIRE_CODE_ACTION:
+            addQuestionnaireCode(draft, action);
+            break;
+        case DELETE_QUESTIONNAIRE_CODE_ACTION:
+            deleteQuestionnaireCode(draft, action);
+            break;
+        case UPDATE_QUESTIONNAIRE_CODE_PROPERTY_ACTION:
+            updateQuestionnaireCodeProperty(draft, action);
             break;
         case ADD_QUESTIONNAIRE_LANGUAGE_ACTION:
             addLanguage(draft, action);

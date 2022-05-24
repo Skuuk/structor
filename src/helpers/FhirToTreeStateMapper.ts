@@ -7,13 +7,21 @@ import {
     Languages,
     MetadataTranslations,
     OrderItem,
+    QuestionnaireCodes,
     SettingTranslations,
     SidebarItemTranslation,
     SidebarItemTranslations,
     Translation,
     TreeState,
 } from '../store/treeStore/treeStore';
-import { Bundle, Questionnaire, QuestionnaireItem, QuestionnaireItemAnswerOption, ValueSet } from '../types/fhir';
+import {
+    Bundle,
+    Questionnaire,
+    QuestionnaireItem,
+    QuestionnaireItemAnswerOption,
+    ValueSet,
+    Coding,
+} from '../types/fhir';
 
 import { IQuestionnaireMetadata } from '../types/IQuestionnaireMetadataType';
 import { isSupportedLanguage, translatableMetadata, translatableSettings } from './LanguageHelper';
@@ -258,6 +266,7 @@ export function mapToTreeState(resource: Bundle | Questionnaire): TreeState {
     const qMetadata: IQuestionnaireMetadata = extractMetadata(mainQuestionnaire);
     const qContained = (mainQuestionnaire.contained as Array<ValueSet>) || []; // we expect contained to only contain ValueSets
     const { qItems, qOrder } = extractItemsAndOrder(mainQuestionnaire.item);
+    const qCodes: QuestionnaireCodes = { codes = (mainQuestionnaire.code) };
 
     // add missing initial value sets:
     initPredefinedValueSet.forEach((x) => {
@@ -273,6 +282,7 @@ export function mapToTreeState(resource: Bundle | Questionnaire): TreeState {
         qMetadata,
         qContained,
         qAdditionalLanguages,
+        qCodes,
     };
 
     return newState;

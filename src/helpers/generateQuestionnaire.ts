@@ -7,6 +7,7 @@ import {
     QuestionnaireItemAnswerOption,
     QuestionnaireItemInitial,
     ValueSet,
+    Coding,
 } from '../types/fhir';
 import { IExtentionType, IQuestionnaireItemType } from '../types/IQuestionnareItemType';
 import { IQuestionnaireMetadata } from '../types/IQuestionnaireMetadataType';
@@ -246,6 +247,7 @@ export const generateMainQuestionnaire = (state: TreeState): Questionnaire => {
         resourceType: 'Questionnaire',
         status: state.qMetadata.status || 'draft',
         item: generateTree(state.qOrder, state.qItems),
+        code: state.qCodes.codes,
     };
 };
 
